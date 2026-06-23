@@ -1,0 +1,11 @@
+Payment Date,Principal,Interest,Lender,Facility
+2026-07-08,250000,145000,First National Bank,Term Loan A
+2026-08-05,6000000,138000,First National Bank,Term Loan A (Balloon)
+2026-09-02,250000,122000,First National Bank,Term Loan A
+2026-06-24,0,64000,Syndicate Agent,Revolver
+2026-07-22,0,61000,Syndicate Agent,Revolver
+2026-08-19,0,59000,Syndicate Agent,Revolver
+2026-09-16,0,58000,Syndicate Agent,Revolver
+2026-07-01,180000,42000,Equipment Capital,Equip Loan
+2026-07-29,180000,40000,Equipment Capital,Equip Loan
+2026-08-26,180000,38000,Equipment Capital,Equip Loan

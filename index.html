@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>13-Week Direct Cash Forecast Generator · Deloitte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=STIX+Two+Text:ital,wght@1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo"><span class="name">Deloitte</span><span class="dot"></span></div>
+        <div class="tagline"><span class="serif-accent">Together</span> makes progress</div>
+      </div>
+      <nav class="nav" id="nav">
+        <div class="nav-label">Treasury Suite</div>
+        <button data-view="dashboard" class="active"><span class="num">◆</span> Dashboard</button>
+        <div class="nav-label">Five-Layer Pipeline</div>
+        <button data-view="layer1"><span class="num">1</span> Data Ingestion <span class="lyr-dot"></span></button>
+        <button data-view="layer2"><span class="num">2</span> Normalization <span class="lyr-dot"></span></button>
+        <button data-view="layer3"><span class="num">3</span> Forecast Engine <span class="lyr-dot"></span></button>
+        <button data-view="layer4"><span class="num">4</span> Variance &amp; Risk <span class="lyr-dot"></span></button>
+        <button data-view="layer5"><span class="num">5</span> Output Layer <span class="lyr-dot"></span></button>
+        <div class="nav-label">Controls</div>
+        <button data-view="settings"><span class="num">⚙</span> Settings &amp; Versions</button>
+      </nav>
+      <div class="foot">13-Week Direct Cash Forecast Generator<br/>Hackathon MVP · v1.0</div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <div class="main">
+      <header class="topbar">
+        <h1>13-Week <span class="serif-accent">Direct</span> Cash Forecast</h1>
+        <div class="spacer"></div>
+        <div class="scenario-toggle" id="scenarioToggle">
+          <button data-sc="Base" class="active">Base</button>
+          <button data-sc="Downside">Downside</button>
+          <button data-sc="Upside">Upside</button>
+        </div>
+        <button class="btn btn-primary" id="runBtn">► Run Forecast</button>
+      </header>
+
+      <main class="content">
+        <section class="view active" id="view-dashboard"></section>
+        <section class="view" id="view-layer1"></section>
+        <section class="view" id="view-layer2"></section>
+        <section class="view" id="view-layer3"></section>
+        <section class="view" id="view-layer4"></section>
+        <section class="view" id="view-layer5"></section>
+        <section class="view" id="view-settings"></section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div id="printArea"></div>
+  <input type="file" id="fileInput" accept=".csv,.txt" style="display:none" />
+
+  <script src="assets/data.js"></script>
+  <script src="assets/engine.js"></script>
+  <script src="assets/output.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

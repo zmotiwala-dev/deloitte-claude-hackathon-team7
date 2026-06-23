@@ -1,0 +1,25 @@
+Customer,Invoice Date,Due Date,Amount,Aging Bucket,Tier
+Acme Corporation,2026-05-29,2026-06-20,1500000,0-30,Tier 1
+Global Retail Group,2026-05-21,2026-06-20,1000000,31-60,Tier 1
+Northwind Traders,2026-05-13,2026-06-22,1400000,31-60,Tier 2
+Summit Healthcare,2026-06-09,2026-06-27,1200000,0-30,Tier 1
+Acme Corporation,2026-06-22,2026-07-04,1600000,0-30,Tier 1
+Pioneer Manufacturing,2026-05-05,2026-06-29,1400000,31-60,Tier 2
+Global Retail Group,2026-06-15,2026-07-11,1300000,0-30,Tier 1
+Blue Ocean Logistics,2026-06-03,2026-07-06,1500000,0-30,Tier 2
+Summit Healthcare,2026-06-28,2026-07-18,1600000,0-30,Tier 1
+West Region Distributors,2026-04-27,2026-07-06,1000000,31-60,Tier 3
+Acme Corporation,2026-07-16,2026-07-25,1700000,0-30,Tier 1
+Northwind Traders,2026-06-15,2026-07-20,1300000,0-30,Tier 2
+West Region Distributors,2026-04-26,2026-07-20,600000,31-60,Tier 3
+Pioneer Manufacturing,2026-07-12,2026-08-03,1700000,0-30,Tier 2
+Vendor Solutions Inc,2026-07-19,2026-08-03,1500000,0-30,Tier 2
+Summit Healthcare,2026-07-27,2026-08-15,1800000,0-30,Tier 1
+Global Retail Group,2026-07-18,2026-08-15,1600000,0-30,Tier 1
+Blue Ocean Logistics,2026-07-18,2026-08-17,1600000,0-30,Tier 2
+Acme Corporation,2026-08-08,2026-08-22,1400000,0-30,Tier 1
+Global Retail Group,2026-08-05,2026-08-29,1400000,0-30,Tier 1
+Northwind Traders,2026-07-17,2026-08-24,1200000,0-30,Tier 2
+Acme Corporation,2026-08-20,2026-09-05,1300000,0-30,Tier 1
+Pioneer Manufacturing,2026-07-18,2026-08-31,1100000,0-30,Tier 2
+Summit Healthcare,2026-08-22,2026-09-12,1200000,0-30,Tier 1
