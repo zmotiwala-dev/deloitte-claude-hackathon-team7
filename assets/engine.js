@@ -35,18 +35,20 @@ function normalize(raw, cfg) {
     const curve = [
       { off: 0, w: 0.70 }, { off: 7, w: 0.20 }, { off: 14, w: 0.10 },
     ];
+    const confByTier = { 'Tier 1': 'High', 'Tier 2': 'Medium', 'Tier 3': 'Low' };
+    const arConf = confByTier[inv.tier] || 'Medium';
     curve.forEach(c => {
       const date = addDays(base, c.off);
       events.push(mkEvent({
         category: 'AR', date, amount: +(amt * c.w),
         entity: inv.customer, subcategory: inv.tier || 'Untiered',
-        confidence: 'Medium', controllable: false,
+        confidence: arConf, controllable: false,
         ref: inv.id, dsoAdj: dso,
         note: `${inv.tier || ''} · DSO+${dso}d · curve ${Math.round(c.w * 100)}%`,
       }, cfg));
     });
   });
-  tasks.push(`AR → ${raw.ar.length} invoices expanded into DSO-adjusted 70/20/10 collection curves (per-tier offset: T1 +${TIER_DSO['Tier 1']}d, T2 +${TIER_DSO['Tier 2']}d, T3 +${TIER_DSO['Tier 3']}d).`);
+  tasks.push(`AR → ${raw.ar.length} invoices · tier confidence (T1=High, T2=Medium, T3=Low) · DSO-adjusted 70/20/10 collection curves (T1 +${TIER_DSO['Tier 1']}d, T2 +${TIER_DSO['Tier 2']}d, T3 +${TIER_DSO['Tier 3']}d).`);
 
   /* ---- AP → Payment timing (terms applied; discretionary flag) ---- */
   raw.ap.forEach(b => {

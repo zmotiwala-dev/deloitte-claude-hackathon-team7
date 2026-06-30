@@ -17,14 +17,17 @@
         <div class="tagline"><span class="serif-accent">Together</span> makes progress</div>
       </div>
       <nav class="nav" id="nav">
-        <div class="nav-label">Treasury Suite</div>
-        <button data-view="dashboard" class="active"><span class="num">◆</span> Dashboard</button>
+        <div class="nav-label">Overview</div>
+        <button data-view="home" class="active"><span class="num">⌂</span> Home</button>
+        <button data-view="personas"><span class="num">👤</span> Personas</button>
         <div class="nav-label">Five-Layer Pipeline</div>
         <button data-view="layer1"><span class="num">1</span> Data Ingestion <span class="lyr-dot"></span></button>
         <button data-view="layer2"><span class="num">2</span> Normalization <span class="lyr-dot"></span></button>
         <button data-view="layer3"><span class="num">3</span> Forecast Engine <span class="lyr-dot"></span></button>
         <button data-view="layer4"><span class="num">4</span> Variance &amp; Risk <span class="lyr-dot"></span></button>
         <button data-view="layer5"><span class="num">5</span> Output Layer <span class="lyr-dot"></span></button>
+        <div class="nav-label">Results</div>
+        <button data-view="dashboard"><span class="num">◆</span> Dashboard</button>
         <div class="nav-label">Controls</div>
         <button data-view="settings"><span class="num">⚙</span> Settings &amp; Versions</button>
       </nav>
@@ -34,8 +37,9 @@
     <!-- ============ MAIN ============ -->
     <div class="main">
       <header class="topbar">
-        <h1>13-Week <span class="serif-accent">Direct</span> Cash Forecast</h1>
+        <h1>13-Week <span class="serif-accent">Direct</span> Cash Forecast <span id="topbar-client" style="font-size:0.65em;font-weight:400;color:var(--gray-400);margin-left:4px"></span></h1>
         <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" id="notesBtn" onclick="togglePresenterNotes()">📋 Presenter Notes</button>
         <div class="scenario-toggle" id="scenarioToggle">
           <button data-sc="Base" class="active">Base</button>
           <button data-sc="Downside">Downside</button>
@@ -45,7 +49,9 @@
       </header>
 
       <main class="content">
-        <section class="view active" id="view-dashboard"></section>
+        <section class="view active" id="view-home"></section>
+        <section class="view" id="view-personas"></section>
+        <section class="view" id="view-dashboard"></section>
         <section class="view" id="view-layer1"></section>
         <section class="view" id="view-layer2"></section>
         <section class="view" id="view-layer3"></section>
@@ -60,9 +66,19 @@
   <div id="printArea"></div>
   <input type="file" id="fileInput" accept=".csv,.txt" style="display:none" />
 
+  <!-- Presenter notes panel (fixed bottom strip) -->
+  <div id="presenter-notes" class="presenter-notes hidden">
+    <div class="pn-header">
+      <b>📋 Presenter Notes — 5-min demo script</b>
+      <button class="pn-close" onclick="togglePresenterNotes()">✕</button>
+    </div>
+    <div class="pn-body" id="pn-body"></div>
+  </div>
+
   <script src="assets/data.js"></script>
   <script src="assets/engine.js"></script>
   <script src="assets/output.js"></script>
+  <script src="assets/claude.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
