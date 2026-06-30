@@ -220,11 +220,163 @@ function clearVersions() { try { localStorage.removeItem(STORE_KEY); } catch (e)
 // compact snapshot stored per run (for variance diffing)
 function makeSnapshot(model) {
   const f = model.forecasts[model.scenario];
+  const normEvs = model.normEvents || [];
   return {
-    runId: model.runId, runDate: model.runDate, scenario: model.scenario,
-    runBy: model.cfg.runBy, inputFiles: model.cfg.inputFiles || 'sample data',
-    openingBalance: model.cfg.openingBalance,
-    weeks: f.weeks.map(w => ({ week: w.week, label: w.label, net: w.net, closing: w.closing, opening: w.opening, cat: Object.assign({}, w.cat) })),
+    runId: model.runId,
+    runDate: model.runDate,
+    scenario: model.scenario,
+    runBy: model.cfg.runBy || '',
+    inputFiles: model.cfg.inputFiles || 'sample data',
+    cfg: {
+      openingBalance: model.cfg.openingBalance,
+      buffer: model.cfg.buffer,
+      covenant: model.cfg.covenant,
+      startDate: model.cfg.startDate instanceof Date ? isoDate(model.cfg.startDate) : model.cfg.startDate,
+      thresholds: JSON.parse(JSON.stringify(model.cfg.thresholds)),
+    },
+    inputCounts: {
+      ar:      normEvs.filter(function(e) { return e.category === 'AR'; }).length,
+      ap:      normEvs.filter(function(e) { return e.category === 'AP'; }).length,
+      payroll: normEvs.filter(function(e) { return e.category === 'Payroll'; }).length,
+      debt:    normEvs.filter(function(e) { return e.category === 'Debt'; }).length,
+      capex:   normEvs.filter(function(e) { return e.category === 'Capex'; }).length,
+    },
+    risks: model.risks.map(function(r) {
+      return { severity: r.severity, week: r.week, type: r.type, driver: r.driver, shortfall: r.shortfall || 0 };
+    }),
+    scenarioSummary: {
+      Base:     { closing: model.forecasts.Base.closingBalance,     net: model.forecasts.Base.netChange },
+      Downside: { closing: model.forecasts.Downside.closingBalance, net: model.forecasts.Downside.netChange },
+      Upside:   { closing: model.forecasts.Upside.closingBalance,   net: model.forecasts.Upside.netChange },
+    },
+    varianceSummary: model.variance.hasPrior ? {
+      hasPrior: true,
+      w13Delta: (function() { var e = (model.variance.ending || []).find(function(e) { return e.week === 13; }); return e ? e.delta : 0; })(),
+      flaggedWeeks: (model.variance.weekly || []).filter(function(w) { return w.flagged; }).length,
+      flaggedCats:  (model.variance.category || []).filter(function(c) { return c.flagged; }).length,
+    } : { hasPrior: false },
     lastDrivers: model.driverHistory || {},
+    weeks: f.weeks.map(function(w) {
+      return { week: w.week, label: w.label, net: w.net, closing: w.closing, opening: w.opening, cat: Object.assign({}, w.cat) };
+    }),
   };
+}
+
+function downloadRunSnapshot(runId) {
+  var versions = loadVersions();
+  var snap = versions.find(function(v) { return v.runId === runId; });
+  if (!snap) return;
+  download('audit_run_' + snap.runId + '.json', JSON.stringify(snap, null, 2), 'application/json');
+}
+
+function downloadAllRuns() {
+  var v = loadVersions();
+  if (!v.length) return;
+  download('audit_log_all_runs.json', JSON.stringify({ exportedAt: new Date().toISOString(), totalRuns: v.length, runs: v }, null, 2), 'application/json');
+}
+
+function exportAuditTrail() {
+  var versions = loadVersions();
+  if (!versions.length) return;
+
+  function detectChanges(curr, prior) {
+    if (!prior) return [];
+    var cur = curr.cfg || {}, pri = prior.cfg || {}, changes = [];
+    [
+      { key: 'openingBalance', label: 'Opening Balance' },
+      { key: 'buffer',         label: 'Operating Floor' },
+      { key: 'covenant',       label: 'Covenant Minimum' },
+      { key: 'startDate',      label: 'Forecast Start' },
+    ].forEach(function(f) {
+      if (cur[f.key] !== pri[f.key]) changes.push({ label: f.label, from: String(pri[f.key] != null ? pri[f.key] : '—'), to: String(cur[f.key] != null ? cur[f.key] : '—') });
+    });
+    if (cur.thresholds && pri.thresholds) {
+      [{ key: 'arDso', label: 'AR DSO' }, { key: 'apDpo', label: 'AP DPO' }, { key: 'payrollVariance', label: 'Payroll Variance %' }].forEach(function(f) {
+        if (cur.thresholds[f.key] !== undefined && cur.thresholds[f.key] !== pri.thresholds[f.key])
+          changes.push({ label: f.label, from: String(pri.thresholds[f.key] != null ? pri.thresholds[f.key] : '—'), to: String(cur.thresholds[f.key]) });
+      });
+    }
+    return changes;
+  }
+
+  var sheets = [];
+
+  /* ---- Sheet 1: Run Summary ---- */
+  (function() {
+    var rows = [];
+    rows.push(rowXml([cell('13-Week Cash Forecast — Audit Trail', 'title')]));
+    rows.push(rowXml([cell('Exported: ' + new Date().toISOString(), 'sub')]));
+    rows.push(rowXml([cell('')]));
+    var hdrs = ['Run ID','Date','Analyst','Scenario','Opening Balance','Floor','Covenant','Forecast Start',
+      'AR Events','AP Events','Payroll Events','Debt Events','Capex Events',
+      'Base W13 Close','Downside W13 Close','Upside W13 Close',
+      'Critical Risks','High Risks','Medium Risks',
+      'W13 Delta vs. Prior','Flagged Weeks','Assumption Changes'];
+    rows.push(rowXml(hdrs.map(function(h) { return cell(h, 'hdr'); })));
+    versions.forEach(function(snap, idx) {
+      var cfg = snap.cfg || {}, ic = snap.inputCounts || {}, ss = snap.scenarioSummary || {}, vs = snap.varianceSummary || {};
+      var risks = snap.risks || [];
+      var crit = risks.filter(function(r) { return r.severity === 'Critical'; }).length;
+      var high = risks.filter(function(r) { return r.severity === 'High'; }).length;
+      var med  = risks.filter(function(r) { return r.severity === 'Medium'; }).length;
+      var prior = idx > 0 ? versions[idx - 1] : null;
+      var chg = detectChanges(snap, prior);
+      rows.push(rowXml([
+        cell(snap.runId), cell(snap.runDate), cell(snap.runBy || '—'), cell(snap.scenario),
+        mcell(cfg.openingBalance || 0), mcell(cfg.buffer || 0), mcell(cfg.covenant || 0), cell(cfg.startDate || '—'),
+        cell(ic.ar != null ? ic.ar : 0, '', 'Number'), cell(ic.ap != null ? ic.ap : 0, '', 'Number'),
+        cell(ic.payroll != null ? ic.payroll : 0, '', 'Number'), cell(ic.debt != null ? ic.debt : 0, '', 'Number'),
+        cell(ic.capex != null ? ic.capex : 0, '', 'Number'),
+        ss.Base ? mcell(ss.Base.closing) : cell('—'),
+        ss.Downside ? mcell(ss.Downside.closing) : cell('—'),
+        ss.Upside ? mcell(ss.Upside.closing) : cell('—'),
+        cell(crit, '', 'Number'), cell(high, '', 'Number'), cell(med, '', 'Number'),
+        vs.hasPrior ? mcell(vs.w13Delta) : cell('Baseline'),
+        vs.hasPrior ? cell(vs.flaggedWeeks, '', 'Number') : cell('—'),
+        cell(chg.length ? chg.map(function(c) { return c.label; }).join(', ') : 'None'),
+      ]));
+    });
+    sheets.push(worksheet('Run Summary', rows, [130,160,180,80,110,100,110,100,80,80,90,80,80,110,110,110,70,70,70,110,90,200]));
+  })();
+
+  /* ---- Sheet 2: Risk Detail ---- */
+  (function() {
+    var rows = [];
+    rows.push(rowXml([cell('Risk Flag Detail — All Runs', 'title')]));
+    rows.push(rowXml([cell('')]));
+    rows.push(rowXml(['Run ID','Date','Analyst','Severity','Week','Risk Type','Driver','Shortfall'].map(function(h) { return cell(h, 'hdr'); })));
+    var anyRisks = false;
+    versions.forEach(function(snap) {
+      (snap.risks || []).forEach(function(r) {
+        anyRisks = true;
+        var st = r.severity === 'Critical' ? 'crit' : (r.severity === 'High' ? 'high' : 'med');
+        rows.push(rowXml([cell(snap.runId), cell(snap.runDate), cell(snap.runBy || '—'), cell(r.severity, st), cell('W' + r.week), cell(r.type), cell(r.driver), r.shortfall > 0 ? mcell(-r.shortfall) : cell('—')]));
+      });
+    });
+    if (!anyRisks) rows.push(rowXml([cell('No risk flags recorded across any run.', 'sub')]));
+    sheets.push(worksheet('Risk Detail', rows, [130,160,180,80,50,150,280,110]));
+  })();
+
+  /* ---- Sheet 3: Assumption Changes ---- */
+  (function() {
+    var rows = [];
+    rows.push(rowXml([cell('Assumption Changes Between Runs', 'title')]));
+    rows.push(rowXml([cell('Each row is one assumption that differed from the immediately prior run.', 'sub')]));
+    rows.push(rowXml([cell('')]));
+    rows.push(rowXml(['Run ID','Date','Analyst','Assumption','Prior Value','New Value'].map(function(h) { return cell(h, 'hdr'); })));
+    var anyChanges = false;
+    versions.forEach(function(snap, idx) {
+      if (idx === 0) return;
+      detectChanges(snap, versions[idx - 1]).forEach(function(c) {
+        anyChanges = true;
+        rows.push(rowXml([cell(snap.runId), cell(snap.runDate), cell(snap.runBy || '—'), cell(c.label), cell(c.from), cell(c.to)]));
+      });
+    });
+    if (!anyChanges) rows.push(rowXml([cell('No assumption changes detected across any run pair.', 'sub')]));
+    sheets.push(worksheet('Assumption Changes', rows, [130,160,180,160,130,130]));
+  })();
+
+  var xml = XML_HEAD + XML_STYLES + sheets.join('') + '</Workbook>';
+  var today = new Date().toISOString().slice(0, 10);
+  download('audit_trail_' + today + '.xls', xml, 'application/vnd.ms-excel');
 }

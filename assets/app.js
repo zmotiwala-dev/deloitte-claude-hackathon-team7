@@ -363,6 +363,7 @@ function renderAll() {
   renderLayer4();
   renderLayer5();
   renderSettings();
+  renderAuditLog();
   updateSidebarStatus();
 }
 // Static views rendered once on init (don't depend on forecast state)
@@ -443,9 +444,9 @@ function assumptionsPanelHTML(cfg) {
     '<div class="assumptions-header" onclick="toggleAssumptionsPanel()">' +
       '<span class="asmpt-title">⚙ Forecast Assumptions</span>' +
       '<span class="asmpt-hint">Opening balance · floor · covenant · start date</span>' +
-      '<span id="l1-assumptions-chev" class="asmpt-chev">▶</span>' +
+      '<span id="l1-assumptions-chev" class="asmpt-chev">▼</span>' +
     '</div>' +
-    '<div class="assumptions-body" id="l1-assumptions-body" style="display:none">' +
+    '<div class="assumptions-body" id="l1-assumptions-body" style="display:block">' +
       '<div class="asmpt-fields">' +
         '<div class="field"><label>Forecast start (W1 Monday)</label><input type="date" id="l1-cfg-start" value="' + isoDate(cfg.startDate) + '"></div>' +
         '<div class="field"><label>Opening bank balance <span class="term-def" data-def="The actual bank balance on the forecast start date — the W1 seed value.">(?)</span></label><input type="number" id="l1-cfg-open" value="' + cfg.openingBalance + '"></div>' +
@@ -831,6 +832,11 @@ function renderDashboard() {
   const med  = m.risks.filter(r => r.severity === 'Medium').length;
   const light = crit || high ? 'red' : (med ? 'amber' : 'green');
   const minWk = f.weeks.reduce((a, w) => w.closing < a.closing ? w : a, f.weeks[0]);
+  // Auto-select the breach week (or tightest week) so its breakdown is visible on load
+  if (State.dashWeek === null) {
+    const breachWk = f.weeks.find(w => w.closing < cfg.buffer);
+    State.dashWeek = breachWk ? breachWk.week : minWk.week;
+  }
   const headroom = minWk.closing - cfg.buffer;
 
   // Status banner headline
@@ -1498,6 +1504,12 @@ function renderLayer3() {
       ${scenarioCard('Base')}${scenarioCard('Downside')}${scenarioCard('Upside')}
     </div>
     ` + continueFooter(3);
+  // Auto-open the worst-risk week so the treasurer sees the breakdown immediately
+  if (State.model && State.model.risks.length) {
+    var autoWk = State.model.risks.filter(function(r) { return r.shortfall > 0; })
+      .sort(function(a, b) { return b.shortfall - a.shortfall; })[0] || State.model.risks[0];
+    if (autoWk) setTimeout(function() { showWeekDrill(autoWk.week); }, 0);
+  }
 }
 function matrixTable(f) {
   const cfg = State.cfg;
@@ -1731,6 +1743,12 @@ function renderLayer4() {
     </div>
     ` + l4ThresholdsPanelHTML(State.cfg) +
     continueFooter(4);
+  // Auto-expand the first Critical risk so the treasurer sees the driver and fix path immediately
+  if (State.model && State.model.risks.length) {
+    var autoIdx = State.model.risks.findIndex(function(r) { return r.severity === 'Critical'; });
+    if (autoIdx === -1) autoIdx = 0;
+    setTimeout(function() { toggleRiskRow(autoIdx); }, 0);
+  }
 }
 
 function baselineConfirmedCard(m) {
@@ -1843,8 +1861,9 @@ function renderLayer5() {
     </div>`;
   }
 
-  // Covenant compliance inline table for lender section
-  const checkpoints = [4, 13];
+  const minWk = f.weeks.reduce((a, w) => w.closing < a.closing ? w : a, f.weeks[0]);
+  // Covenant compliance inline table for lender section — always show W4, tightest week, and W13
+  const checkpoints = [4, minWk.week, 13].filter((w, i, arr) => arr.indexOf(w) === i).sort((a, b) => a - b);
   const covRows = checkpoints.map(wk => {
     const w = f.weeks[wk - 1];
     const headroom = w.closing - cfg.covenant;
@@ -1857,7 +1876,6 @@ function renderLayer5() {
       <td><span class="cov-badge ${pass ? 'cov-pass' : 'cov-fail'}">${pass ? 'PASS' : 'BREACH'}</span></td>
     </tr>`;
   }).join('');
-  const minWk = f.weeks.reduce((a, w) => w.closing < a.closing ? w : a, f.weeks[0]);
   const revolverNeed = Math.max(0, cfg.buffer - minWk.closing);
 
   el.innerHTML = pipelineProgress(5) + `
@@ -2039,6 +2057,188 @@ function renderSettings() {
       </div>
     </div>`;
 }
+
+/* ---------------- AUDIT LOG ---------------- */
+function detectAssumptionChanges(currentSnap, priorSnap) {
+  if (!priorSnap) return [];
+  var cur = currentSnap.cfg || {};
+  var pri = priorSnap.cfg || {};
+  var changes = [];
+  [
+    { key: 'openingBalance', label: 'Opening Balance', fmt: fmtM },
+    { key: 'buffer',         label: 'Operating Floor', fmt: fmtM },
+    { key: 'covenant',       label: 'Covenant Minimum', fmt: fmtM },
+    { key: 'startDate',      label: 'Forecast Start',   fmt: function(v) { return v || '—'; } },
+  ].forEach(function(f) {
+    if (cur[f.key] !== pri[f.key]) {
+      changes.push({ label: f.label, from: f.fmt(pri[f.key] != null ? pri[f.key] : 0), to: f.fmt(cur[f.key] != null ? cur[f.key] : 0) });
+    }
+  });
+  if (cur.thresholds && pri.thresholds) {
+    [
+      { key: 'arDso',            label: 'AR DSO Threshold' },
+      { key: 'apDpo',            label: 'AP DPO Threshold' },
+      { key: 'payrollVariance',  label: 'Payroll Variance %' },
+    ].forEach(function(f) {
+      if (cur.thresholds[f.key] !== undefined && cur.thresholds[f.key] !== pri.thresholds[f.key]) {
+        changes.push({ label: f.label, from: String(pri.thresholds[f.key] != null ? pri.thresholds[f.key] : '—'), to: String(cur.thresholds[f.key]) });
+      }
+    });
+  }
+  return changes;
+}
+
+function renderAuditLog() {
+  var el = document.getElementById('view-audit');
+  if (!el) return;
+  var versions = loadVersions();
+  var runs = versions.slice().reverse(); // newest first
+
+  var runRows = runs.map(function(snap, i) {
+    var risks = snap.risks || [];
+    var crit = risks.filter(function(r) { return r.severity === 'Critical'; }).length;
+    var high = risks.filter(function(r) { return r.severity === 'High'; }).length;
+    var med  = risks.filter(function(r) { return r.severity === 'Medium'; }).length;
+    var sevColor = crit ? 'var(--crit)' : (high ? 'var(--high)' : (med ? 'var(--gray-500)' : 'var(--green)'));
+    var sevLabel = risks.length === 0 ? 'No flags'
+      : (crit ? crit + ' Critical' : '') + (crit && high ? ', ' : '') + (high ? high + ' High' : '') + (((crit || high) && med) ? ', ' : '') + (med && !(crit || high) ? med + ' Medium' : '');
+
+    var cfg = snap.cfg || {};
+    var ic = snap.inputCounts || {};
+    var ss = snap.scenarioSummary || {};
+    var vs = snap.varianceSummary || { hasPrior: false };
+    var w13Close = snap.weeks && snap.weeks[12] ? snap.weeks[12].closing : (snap.openingBalance || 0);
+    var priorSnap = (i < runs.length - 1) ? runs[i + 1] : null;
+    var changes = detectAssumptionChanges(snap, priorSnap);
+    var changesHtml = changes.length
+      ? '<div class="al-change-list">' + changes.map(function(c) {
+          return '<div class="al-change-row">' +
+            '<span class="al-change-label">' + c.label + '</span>' +
+            '<span class="al-change-from">' + c.from + '</span>' +
+            '<span class="al-change-arrow">→</span>' +
+            '<span class="al-change-to">' + c.to + '</span>' +
+          '</div>';
+        }).join('') + '</div>'
+      : null;
+
+    var scenarioCells = '';
+    if (ss.Base) {
+      scenarioCells += '<div class="al-dr"><span>Base</span><span>' + fmtM(ss.Base.closing) + ' <span class="muted">net ' + (ss.Base.net >= 0 ? '+' : '') + fmtM(ss.Base.net) + '</span></span></div>';
+      scenarioCells += '<div class="al-dr"><span>Downside</span><span>' + fmtM(ss.Downside.closing) + ' <span class="muted">net ' + (ss.Downside.net >= 0 ? '+' : '') + fmtM(ss.Downside.net) + '</span></span></div>';
+      scenarioCells += '<div class="al-dr"><span>Upside</span><span>' + fmtM(ss.Upside.closing) + ' <span class="muted">net ' + (ss.Upside.net >= 0 ? '+' : '') + fmtM(ss.Upside.net) + '</span></span></div>';
+    } else {
+      scenarioCells = '<div class="muted" style="font-size:12px">Not captured in this run</div>';
+    }
+
+    var riskHtml = risks.length
+      ? risks.map(function(r) {
+          var cls = r.severity === 'Critical' ? 'ra-crit' : (r.severity === 'High' ? 'ra-high' : 'ra-med');
+          return '<div class="al-risk-row"><span class="ra-sev ' + cls + '">' + r.severity + '</span>' +
+            '<span class="al-risk-text"><b>W' + r.week + ' · ' + r.type + '</b>' +
+            (r.shortfall > 0 ? ' · −' + fmtM(r.shortfall) : '') +
+            ' <span class="muted">— ' + r.driver + '</span></span></div>';
+        }).join('')
+      : '<div class="muted" style="font-size:12px;padding:2px 0">No risk flags detected.</div>';
+
+    var varianceHtml = vs.hasPrior
+      ? '<div class="al-detail-rows">' +
+          '<div class="al-dr"><span>W13 close delta</span><span class="' + (vs.w13Delta < 0 ? 'num-neg' : 'num-pos') + '">' + (vs.w13Delta >= 0 ? '+' : '') + fmtM(vs.w13Delta) + '</span></div>' +
+          '<div class="al-dr"><span>Flagged weeks</span><span>' + vs.flaggedWeeks + '</span></div>' +
+          '<div class="al-dr"><span>Flagged categories</span><span>' + vs.flaggedCats + '</span></div>' +
+        '</div>'
+      : '<div class="muted" style="font-size:12px;padding:2px 0">Baseline run — no prior version to compare.</div>';
+
+    var expandedHtml =
+      '<div class="al-detail-inner">' +
+        '<div class="al-detail-grid">' +
+          '<div class="al-detail-section">' +
+            '<div class="al-detail-label">Assumptions</div>' +
+            '<div class="al-detail-rows">' +
+              '<div class="al-dr"><span>Opening balance</span><span>' + fmtM(cfg.openingBalance || snap.openingBalance || 0) + '</span></div>' +
+              '<div class="al-dr"><span>Operating floor</span><span>' + fmtM(cfg.buffer || 0) + '</span></div>' +
+              '<div class="al-dr"><span>Covenant minimum</span><span>' + fmtM(cfg.covenant || 0) + '</span></div>' +
+              '<div class="al-dr"><span>Forecast start</span><span>' + (cfg.startDate || '—') + '</span></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="al-detail-section">' +
+            '<div class="al-detail-label">Events processed</div>' +
+            '<div class="al-detail-rows">' +
+              '<div class="al-dr"><span>AR Collections</span><span>' + (ic.ar != null ? ic.ar + ' events' : '—') + '</span></div>' +
+              '<div class="al-dr"><span>AP Disbursements</span><span>' + (ic.ap != null ? ic.ap + ' events' : '—') + '</span></div>' +
+              '<div class="al-dr"><span>Payroll</span><span>' + (ic.payroll != null ? ic.payroll + ' events' : '—') + '</span></div>' +
+              '<div class="al-dr"><span>Debt Service</span><span>' + (ic.debt != null ? ic.debt + ' events' : '—') + '</span></div>' +
+              '<div class="al-dr"><span>Capex</span><span>' + (ic.capex != null ? ic.capex + ' events' : '—') + '</span></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="al-detail-section">' +
+            '<div class="al-detail-label">Scenario closes (W13)</div>' +
+            scenarioCells +
+          '</div>' +
+        '</div>' +
+        '<div class="al-detail-lower">' +
+          '<div class="al-detail-section">' +
+            '<div class="al-detail-label">Risk flags (' + risks.length + ')</div>' +
+            '<div class="al-risk-list">' + riskHtml + '</div>' +
+          '</div>' +
+          '<div class="al-detail-section">' +
+            '<div class="al-detail-label">vs. prior run</div>' +
+            varianceHtml +
+          '</div>' +
+        '</div>' +
+        (changesHtml
+          ? '<div class="al-detail-changes"><div class="al-detail-label">Assumption changes vs. prior run</div>' + changesHtml + '</div>'
+          : '') +
+      '</div>';
+
+    return '<div class="al-row" id="al-row-' + i + '">' +
+      '<div class="al-summary" onclick="toggleAuditRow(' + i + ')">' +
+        '<span class="al-chevron" id="al-chev-' + i + '">▶</span>' +
+        '<div class="al-run-id">' + snap.runId + '</div>' +
+        '<div class="al-run-meta">' +
+          '<span class="al-run-date">' + snap.runDate + '</span>' +
+          (snap.runBy ? '<span class="al-run-by">· ' + snap.runBy + '</span>' : '') +
+        '</div>' +
+        '<span class="al-run-scenario">' + snap.scenario + '</span>' +
+        (changes.length ? '<span class="al-assumption-badge">⚠ ' + changes.length + ' assumption' + (changes.length > 1 ? 's' : '') + ' changed</span>' : '') +
+        '<span class="al-run-sev" style="color:' + sevColor + '">' + sevLabel + '</span>' +
+        '<div class="al-run-close">' + fmtM(w13Close) + '<span class="al-run-close-label">W13</span></div>' +
+        '<button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();downloadRunSnapshot(\'' + snap.runId + '\')" title="Download full audit data for this run">⬇ JSON</button>' +
+      '</div>' +
+      '<div class="al-detail" id="al-detail-' + i + '" style="display:none">' + expandedHtml + '</div>' +
+    '</div>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="page-head">' +
+      '<div class="eyebrow">Controls · Internal QC</div>' +
+      '<h2>Audit Log</h2>' +
+      '<p>Every forecast run recorded with assumptions, input record counts, risk flags, and all three scenario closes — providing a traceable record for internal quality review. Expand any run to see its full detail, or download individual runs as JSON.</p>' +
+    '</div>' +
+    '<div class="al-toolbar">' +
+      '<div class="al-toolbar-left">' +
+        '<span class="al-run-count">' + runs.length + ' run' + (runs.length !== 1 ? 's' : '') + ' recorded</span>' +
+        (runs.length ? '<span class="al-session-note">Stored in browser localStorage · export to preserve across sessions</span>' : '') +
+      '</div>' +
+      '<div class="al-toolbar-right">' +
+        (runs.length ? '<button class="btn btn-ghost btn-sm" onclick="exportAuditTrail()">⬇ Export audit trail (Excel)</button>' : '') +
+        (runs.length ? '<button class="btn btn-ghost btn-sm" onclick="downloadAllRuns()">⬇ Export all runs as JSON</button>' : '') +
+        (runs.length ? '<button class="btn btn-ghost btn-sm" style="color:var(--gray-500)" onclick="if(confirm(\'Clear all run history? This cannot be undone.\')){clearVersions();renderAuditLog();toast(\'Run history cleared\')}">Clear history</button>' : '') +
+      '</div>' +
+    '</div>' +
+    (runs.length
+      ? '<div class="al-list">' + runRows + '</div>'
+      : '<div class="card card-pad empty"><div class="big">📋</div><h3>No runs recorded yet</h3><p class="muted" style="margin:8px 0 18px">Run the forecast to create the first audit entry. Each run will appear here with full assumptions, inputs, and outputs.</p><button class="btn btn-primary" onclick="loadAllSamples();runForecast();go(\'audit\')">► Run forecast now</button></div>');
+}
+
+function toggleAuditRow(idx) {
+  var detail = document.getElementById('al-detail-' + idx);
+  var chev = document.getElementById('al-chev-' + idx);
+  if (!detail) return;
+  var open = detail.style.display !== 'none';
+  detail.style.display = open ? 'none' : 'block';
+  if (chev) chev.textContent = open ? '▶' : '▼';
+}
+
 function versionTable(versions) {
   if (!versions.length) return '<div class="muted" style="padding:14px">No versions yet — run the forecast to create the first snapshot.</div>';
   return `<table><thead><tr><th>Run ID</th><th>Date</th><th>Scenario</th><th>Inputs</th><th>W13 Close</th></tr></thead><tbody>
@@ -2243,6 +2443,7 @@ function renderHome() {
       <p class="home-sub">This tool turns raw financial data into a week-by-week survival plan — the kind lenders trust and treasurers can actually act on.</p>
       <div class="home-hero-actions">
         <button class="btn btn-primary home-demo-btn" onclick="loadAllSamples();runForecast();go('dashboard')">► Start the Demo</button>
+        <button class="btn btn-ghost home-resume-btn" onclick="go(State.model ? 'dashboard' : 'layer1')">Continue where I left off →</button>
         <span class="home-hero-hint">Catches a <span class="text-crit">$1.3M breach at Week 7</span> — driver named, fix attached</span>
       </div>
     </div>
