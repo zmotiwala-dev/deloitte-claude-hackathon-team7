@@ -43,11 +43,11 @@ const PERSONA_DATA = [
     homeIcon: '💼',
     homeHook: '4–8 hours per week rebuilding a forecast that\'s stale before anyone reads it.',
     currentFlow: [
-      { icon: '🏦', step: 'Pull data',        who: 'person', note: 'Multiple bank portals & ERP — by hand' },
-      { icon: '📋', step: 'Stitch together',  who: 'person', note: 'Copy-paste into a master spreadsheet' },
-      { icon: '🔧', step: 'Build formulas',   who: 'person', note: '4–8 hrs/week, formula by formula' },
-      { icon: '📄', step: 'Write report',     who: 'person', note: 'Stale before it reaches the CFO' },
-      { icon: '🚨', step: 'React to crisis',  who: 'person', note: 'Shortfall found too late to fix' },
+      { icon: '🏦', step: 'Pull data',        who: 'person', note: '6+ bank portals & ERP exports' },
+      { icon: '📋', step: 'Stitch together',  who: 'person', note: 'Copy-paste into master sheet' },
+      { icon: '🔧', step: 'Build formulas',   who: 'person', note: '4–8 hrs, formula by formula' },
+      { icon: '📄', step: 'Write report',     who: 'person', note: 'Already stale on delivery' },
+      { icon: '🚨', step: 'React to crisis',  who: 'person', note: 'Shortfall found too late' },
     ],
     currentPains: [
       'Rebuilding the forecast from scratch every week costs 4–8 hours — before any decision can be made.',
@@ -56,11 +56,11 @@ const PERSONA_DATA = [
       'The forecast is stale by the time anyone reads it. You\'re always reacting to last week\'s data.',
     ],
     futureFlow: [
-      { icon: '📁', step: 'Upload data',      who: 'person', note: 'CSV from any ERP or HRIS format' },
-      { icon: '⚡', step: 'Auto-ingest',      who: 'ai',     note: 'Layer 1 · fuzzy header detection' },
-      { icon: '📈', step: 'Live forecast',    who: 'ai',     note: 'Layers 2–3 · 13 weeks, 3 scenarios' },
-      { icon: '🎯', step: 'Review flags',     who: 'person', note: 'You interpret AI-flagged risk weeks' },
-      { icon: '✅', step: 'Act on it',        who: 'person', note: 'You decide, export & execute' },
+      { icon: '📁', step: 'Upload data',      who: 'person', note: 'CSV from any ERP or HRIS' },
+      { icon: '⚡', step: 'Auto-ingest',      who: 'ai',     note: 'Fuzzy headers, 5 source types' },
+      { icon: '📈', step: 'Run forecast',     who: 'ai',     note: '13 weeks · 3 scenarios · <1 min' },
+      { icon: '🎯', step: 'Review flags',     who: 'person', note: 'Named drivers, ranked by severity' },
+      { icon: '✅', step: 'Act on it',        who: 'person', note: 'Decide, export & execute' },
     ],
     futureBenefits: [
       'Upload new data — the forecast rebuilds in seconds. The 4–8 hour weekly rebuild is gone.',
@@ -69,6 +69,7 @@ const PERSONA_DATA = [
       'Time shifts from assembling numbers to acting on them. The forecast is always current.',
     ],
     loop: `The treasurer validates the assumptions behind each scenario, sanity-checks the flagged drivers against what they know about the business, and decides which levers to pull. The tool surfaces the problem; the treasurer owns the response.`,
+    stat: { from: '4–8 hrs/week', to: 'minutes', label: 'to rebuild the forecast' },
   },
   {
     title: 'CFO',
@@ -76,11 +77,11 @@ const PERSONA_DATA = [
     homeIcon: '📊',
     homeHook: 'Walks into lender meetings with numbers they didn\'t build and can\'t fully defend.',
     currentFlow: [
-      { icon: '⏳', step: 'Wait for data',    who: 'person', note: 'Days to receive a usable number' },
-      { icon: '🔍', step: 'Interrogate it',   who: 'person', note: 'Often stale — doesn\'t reconcile' },
-      { icon: '✍️', step: 'Guess downside',   who: 'person', note: 'Scenario modeling takes a weekend' },
+      { icon: '⏳', step: 'Wait for data',    who: 'person', note: 'Days to a usable number' },
+      { icon: '🔍', step: 'Interrogate it',   who: 'person', note: 'Often stale, hard to reconcile' },
+      { icon: '✍️', step: 'Guess downside',   who: 'person', note: 'Scenario work takes a weekend' },
       { icon: '😰', step: 'Walk in exposed',  who: 'person', note: 'Numbers you didn\'t build' },
-      { icon: '❓', step: 'Defend under fire', who: 'person', note: 'No clean narrative, no safety net' },
+      { icon: '❓', step: 'Defend under fire', who: 'person', note: 'No narrative, no safety net' },
     ],
     currentPains: [
       'Waiting days for a usable number means decisions lag reality — or get made without one.',
@@ -89,10 +90,10 @@ const PERSONA_DATA = [
       'The CFO often enters critical conversations with numbers they didn\'t build and can\'t fully explain.',
     ],
     futureFlow: [
-      { icon: '📊', step: 'Open dashboard',   who: 'person', note: 'Same live view as the treasury team' },
-      { icon: '📉', step: 'See 3 scenarios',  who: 'ai',     note: 'Base, downside, upside — instant' },
-      { icon: '✦',  step: 'AI narrative',     who: 'ai',     note: 'Claude drafts the CFO risk briefing' },
-      { icon: '💼', step: 'Review & approve', who: 'person', note: 'You verify before it goes to the bank' },
+      { icon: '📊', step: 'Open dashboard',   who: 'person', note: 'Same view as treasury, live' },
+      { icon: '📉', step: 'See 3 scenarios',  who: 'ai',     note: 'Base · Downside · Upside' },
+      { icon: '✦',  step: 'AI narrative',     who: 'ai',     note: 'Claude drafts the risk briefing' },
+      { icon: '💼', step: 'Review & approve', who: 'person', note: 'Verify before it goes to the bank' },
       { icon: '🧠', step: 'Own the decision', who: 'person', note: 'Strategy & judgment stay with you' },
     ],
     futureBenefits: [
@@ -102,6 +103,7 @@ const PERSONA_DATA = [
       'Claude drafts the risk narrative. Walk into any meeting with defensible numbers and a clear story.',
     ],
     loop: `The CFO owns the strategic call — which scenario to plan against, which costs to cut, what to commit to the lender. The tool gives a defensible foundation; the CFO makes the judgment and carries the accountability.`,
+    stat: { from: 'days', to: 'instant', label: 'time to a defensible number' },
   },
   {
     title: 'Lender / Restructuring Advisor',
@@ -110,9 +112,9 @@ const PERSONA_DATA = [
     homeHook: 'Receives forecasts in inconsistent formats with opaque assumptions they can\'t audit.',
     currentFlow: [
       { icon: '📨', step: 'Request forecast', who: 'person', note: 'On the borrower\'s timeline' },
-      { icon: '📑', step: 'Receive report',   who: 'person', note: 'Inconsistent format — every time' },
-      { icon: '🤔', step: 'Question data',    who: 'person', note: 'Opaque assumptions, no audit trail' },
-      { icon: '📋', step: 'Check covenants',  who: 'person', note: 'Manual, reactive, error-prone' },
+      { icon: '📑', step: 'Receive report',   who: 'person', note: 'Different format every time' },
+      { icon: '🤔', step: 'Question data',    who: 'person', note: 'Assumptions opaque, unauditable' },
+      { icon: '📋', step: 'Check covenants',  who: 'person', note: 'Manual, week by week' },
       { icon: '📉', step: 'Lose confidence',  who: 'person', note: 'Trust erodes under pressure' },
     ],
     currentPains: [
@@ -122,10 +124,10 @@ const PERSONA_DATA = [
       'Confidence erodes when a company can\'t produce clean data under pressure. That erosion is a warning sign in itself.',
     ],
     futureFlow: [
-      { icon: '📦', step: 'Receive package',  who: 'person', note: 'Standardized format, every borrower' },
+      { icon: '📦', step: 'Receive package',  who: 'person', note: 'Standardized, every borrower' },
       { icon: '👁️', step: 'Review forecast',  who: 'person', note: '13-week grid, assumptions visible' },
-      { icon: '✓',  step: 'Check covenants', who: 'ai',     note: 'Automated compliance table, week by week' },
-      { icon: '🔎', step: 'Verify trail',     who: 'ai',     note: 'Auditable path from raw data to output' },
+      { icon: '✓',  step: 'Check covenants', who: 'ai',     note: 'Automated table, week by week' },
+      { icon: '🔎', step: 'Verify trail',     who: 'ai',     note: 'Raw data → output, fully auditable' },
       { icon: '⚖️', step: 'Make decision',    who: 'person', note: 'Credit judgment stays with you' },
     ],
     futureBenefits: [
@@ -135,6 +137,7 @@ const PERSONA_DATA = [
       'Consistency and transparency signal the company is in control. Confidence restored.',
     ],
     loop: `The lender exercises the credit judgment the tool can't: whether the plan is believable, whether to extend, restructure, or call the loan. The tool makes the company's position legible; the decision stays with the lender.`,
+    stat: { from: 'manual', to: 'automated', label: 'covenant compliance check' },
   },
 ];
 
@@ -501,25 +504,18 @@ function l4ThresholdsPanelHTML(cfg) {
 /* Recommended actions derived from risk flags */
 function dashActionItems(m) {
   if (!m.risks.length) return '';
-  var items = m.risks.map(function(r, i) {
-    var fix = riskFixTarget(r.type);
-    var sev = r.severity === 'Critical' ? 'dai-crit' : r.severity === 'High' ? 'dai-high' : 'dai-med';
-    return '<div class="dai-item ' + sev + '">' +
-      '<div class="dai-num">' + (i + 1) + '</div>' +
-      '<div class="dai-body">' +
-        '<div class="dai-action">' + r.action + '</div>' +
-        '<div class="dai-context">W' + r.week + ' · ' + r.type + ' · ' + sevBadge(r.severity) + '</div>' +
-      '</div>' +
-      '<button class="btn btn-ghost btn-xs fix-tip" data-tip="' + fix.tip + '" data-rtype="' + r.type + '" onclick="goWithRiskContext(this)">' + fix.label + ' →</button>' +
-    '</div>';
-  }).join('');
-  return '<div class="card card-pad dai-card" style="margin-bottom:18px">' +
-    '<div class="dai-head">' +
-      '<div><h3 style="margin:0">Recommended Actions</h3>' +
-      '<div class="card-sub">Prioritized by severity — resolve these before the lender package can be submitted</div></div>' +
-      '<button class="btn btn-ghost btn-sm" onclick="go(\'layer4\')">Full risk detail →</button>' +
+  var top = m.risks[0];
+  var rest = m.risks.length - 1;
+  var fix = riskFixTarget(top.type);
+  var sevCls = top.severity === 'Critical' ? 'dai-strip-crit' : top.severity === 'High' ? 'dai-strip-high' : 'dai-strip-med';
+  return '<div class="dai-strip ' + sevCls + '">' +
+    '<div class="dai-strip-label">Next action</div>' +
+    '<div class="dai-strip-action">' + top.action + '</div>' +
+    '<div class="dai-strip-meta">W' + top.week + ' · ' + top.type + '</div>' +
+    '<div class="dai-strip-right">' +
+      '<button class="btn btn-ghost btn-xs fix-tip" data-tip="' + fix.tip + '" data-rtype="' + top.type + '" onclick="goWithRiskContext(this)">' + fix.label + ' →</button>' +
+      (rest > 0 ? '<a href="#" class="dai-strip-more" onclick="go(\'layer4\');return false">+' + rest + ' more</a>' : '') +
     '</div>' +
-    '<div class="dai-list">' + items + '</div>' +
   '</div>';
 }
 
@@ -2224,85 +2220,70 @@ function renderHome() {
   const el = document.getElementById('view-home');
   if (!el) return;
 
-  function term(label, def) {
-    return '<span class="term" data-def="' + def + '">' + label + '</span>';
-  }
-
   const steps = [
-    { n: '1', label: 'Ingest',     desc: 'Pull in raw data: receivables, payables, payroll, debt, capex.' },
-    { n: '2', label: 'Normalize',  desc: 'Clean and standardize every input — nothing is a black box.' },
-    { n: '3', label: 'Forecast',   desc: 'Project cash 13 weeks out: base case, downside, and upside.' },
-    { n: '4', label: 'Flag',       desc: 'Surface dangerous weeks automatically, color-coded by severity.' },
-    { n: '5', label: 'Deliver',    desc: 'Export formats the lender actually needs — covenant view, PDF, Excel.' },
+    { n: '1', label: 'Ingest',    desc: 'Pull in raw data: receivables, payables, payroll, debt, capex.' },
+    { n: '2', label: 'Normalize', desc: 'Clean and standardize every input — nothing is a black box.' },
+    { n: '3', label: 'Forecast',  desc: 'Project cash 13 weeks out: base case, downside, and upside.' },
+    { n: '4', label: 'Flag',      desc: 'Surface dangerous weeks automatically, color-coded by severity.' },
+    { n: '5', label: 'Deliver',   desc: 'Export formats the lender actually needs — covenant view, PDF, Excel.' },
   ];
 
   const terms = [
-    ['Liquidity runway',   `How many weeks of cash a company has left before it can't pay what it owes.`],
-    ['13-week forecast',   `The short-horizon cash projection that restructuring advisors and lenders rely on.`],
-    ['Covenant',           `A condition in a loan agreement (e.g. "keep cash above $X"). Breaking it can let a lender call the loan.`],
-    ['Lender package',     `The bundle of forecasts and compliance evidence given to a lender to maintain their confidence.`],
-    ['Variance',           `The gap between what was forecast and what actually happened — the early-warning signal.`],
-    ['Chapter 11',         `A legal restructuring process that lets a company keep operating while it reorganizes its debts.`],
+    ['Liquidity runway',  `How many weeks of cash a company has left before it can't pay what it owes.`],
+    ['13-week forecast',  `The short-horizon cash projection that restructuring advisors and lenders rely on.`],
+    ['Covenant',          `A loan condition (e.g. "keep cash above $X"). Breaking it can let a lender call the loan.`],
+    ['Lender package',    `The bundle of forecasts and compliance evidence given to a lender to maintain confidence.`],
+    ['Variance',          `The gap between what was forecast and what actually happened — the early-warning signal.`],
+    ['Chapter 11',        `A legal restructuring process that lets a company keep operating while it reorganizes its debts.`],
   ];
 
   el.innerHTML = `
     <div class="home-hero">
       <div class="home-hook">A profitable company can still run out of cash — and die in 13 weeks.</div>
-      <p class="home-sub">Profit is an accounting story. Cash is a survival story. A business can be making money on paper and still fail to make payroll, because the money is tied up in unpaid invoices and inventory while the bills come due now. This tool exists for the 13 weeks when that gap becomes a matter of survival.</p>
+      <p class="home-sub">This tool turns raw financial data into a week-by-week survival plan — the kind lenders trust and treasurers can actually act on.</p>
+      <div class="home-hero-actions">
+        <button class="btn btn-primary home-demo-btn" onclick="loadAllSamples();runForecast();go('dashboard')">► Start the Demo</button>
+        <span class="home-hero-hint">Catches a <span class="text-crit">$1.3M breach at Week 7</span> — driver named, fix attached</span>
+      </div>
     </div>
 
-    <div class="grid g3" style="margin-bottom:24px">
+    <div class="grid g3 home-prob-grid">
       <div class="card card-pad prob-card">
         <div class="prob-icon">🚨</div>
         <h4>Who needs this</h4>
-        <p>A company burning through cash — often heading toward, or already inside, restructuring or ${term('Chapter 11', 'A legal restructuring process that lets a company keep operating while it reorganizes its debts.')}. Leadership knows they're in trouble. What they don't have is a clear, week-by-week picture of when the cash actually runs out.</p>
+        <p>A company in distress — burning through cash, often inside or approaching restructuring. Leadership knows they're in trouble. They don't know exactly when the cash runs out.</p>
       </div>
       <div class="card card-pad prob-card">
-        <div class="prob-icon">📊</div>
-        <h4>What they're forced to do today</h4>
-        <p>Build the forecast by hand in fragile spreadsheets. React instead of anticipate. Scramble to reassure ${term('lenders', 'Banks or institutions that have loaned money to the company and need confidence it will be repaid.')} with numbers no one fully trusts. By the time a shortfall is obvious, the options to fix it are mostly gone.</p>
+        <div class="prob-icon">⏱</div>
+        <h4>What they do today</h4>
+        <p>Rebuild the forecast by hand every week — 4–8 hours in fragile spreadsheets. Stale before it's read. Shortfalls surface after the cash is already gone.</p>
       </div>
       <div class="card card-pad prob-card">
-        <div class="prob-icon">⚠️</div>
-        <h4>What's at stake if they get it wrong</h4>
-        <p>A missed payroll. A breached ${term('covenant', 'A condition in a loan agreement — e.g. "keep cash above $X". Breaking it can let a lender call the loan.')}. Lost lender confidence. In the worst case, liquidation — the company stops being worth more alive than sold for parts.</p>
+        <div class="prob-icon">⚡</div>
+        <h4>What's at stake</h4>
+        <p>A breached covenant. A missed payroll. Lost lender confidence. By the time the shortfall is obvious, the options to fix it are mostly gone.</p>
       </div>
     </div>
 
-    <div class="card card-pad" style="margin-bottom:24px">
-      <div class="eyebrow-label">Why 13 weeks</div>
-      <p style="font-size:14px;color:var(--gray-600);max-width:780px;line-height:1.7">The 13-week window isn't arbitrary. It's the standard horizon restructuring advisors and lenders use, because it's long enough to see the danger coming and short enough to forecast with confidence. It's the ${term('liquidity runway', "How many weeks of cash a company has left before it can't pay what it owes.")} you're fighting over.</p>
-    </div>
-
-    <div class="card card-pad" style="margin-bottom:24px">
-      <div class="eyebrow-label">What you're looking at</div>
-      <p style="color:var(--gray-600);margin-bottom:20px;max-width:780px">This tool takes a company's raw financial data and turns it into a survival plan in five steps — click any step to explore that layer:</p>
-      <div class="pipeline-flow">
+    <div class="card card-pad home-pipeline-card">
+      <div class="home-section-head">How it works — 5 steps</div>
+      <p class="home-section-sub">The 13-week window is the standard horizon lenders and advisors rely on — long enough to see the crisis coming, short enough to forecast with confidence. Click any step to explore that layer.</p>
+      <div class="pipeline-flow" style="margin-top:18px">
         ${steps.map(function(s, i) {
           return '<div class="pipe-step pipe-step-link" onclick="go(\'layer' + s.n + '\')" title="Explore Layer ' + s.n + '">' +
             '<div class="pipe-num">' + s.n + '</div>' +
             '<div class="pipe-label">' + s.label + '</div>' +
             '<div class="pipe-desc">' + s.desc + '</div>' +
             '<div class="pipe-explore">Explore →</div>' +
-            '</div>' +
-            (i < steps.length - 1 ? '<div class="pipe-arrow">→</div>' : '');
+          '</div>' +
+          (i < steps.length - 1 ? '<div class="pipe-arrow">→</div>' : '');
         }).join('')}
       </div>
     </div>
 
-    <div class="card card-pad" style="margin-bottom:24px">
-      <div class="eyebrow-label">Key terms</div>
-      <div class="grid g3" style="margin-top:10px">
-        ${terms.map(function(t) {
-          return '<div class="kterm-card"><b>' + t[0] + '</b><p>' + t[1] + '</p></div>';
-        }).join('')}
-      </div>
-    </div>
-
-    <div class="card card-pad" style="margin-bottom:24px">
-      <div class="eyebrow-label">Who uses this</div>
-      <p style="font-size:14px;color:var(--gray-600);max-width:780px;margin-bottom:18px">Real people do this work today — and the pain is real. Each role experiences the problem differently and gets different relief from the tool. The human never leaves the loop; the grunt work does.</p>
-      <div class="grid g3">
+    <div class="card card-pad home-personas-card">
+      <div class="home-section-head">Who this is for</div>
+      <div class="grid g3" style="margin-top:14px">
         ${PERSONA_DATA.map(function(p, i) {
           return '<div class="pp-card" onclick="showPersona(' + i + ');go(\'personas\')">' +
             '<div class="pp-icon">' + p.homeIcon + '</div>' +
@@ -2314,11 +2295,13 @@ function renderHome() {
       </div>
     </div>
 
-    <div class="home-teaser">
-      <div class="teaser-eyebrow">Watch it work →</div>
-      <h3>The tool catches a <span class="text-crit">$1.3M cash floor breach at Week 7</span> — and pinpoints the driver before it's too late to act.</h3>
-      <p>A $6M balloon payment lands in a light AR collection week. The closing balance drops to $3.7M — $1.3M below the $5M operating floor. That's the kind of collision a spreadsheet usually catches only after the cash is gone. Here, it's flagged automatically, weeks ahead, with the driver named and a recommended action attached.</p>
-      <button class="btn btn-primary" style="margin-top:18px" onclick="loadAllSamples();runForecast();go('dashboard')">► Start the Demo</button>
+    <div class="home-terms-footer">
+      <div class="home-terms-label">Key terms</div>
+      <div class="home-terms-list">
+        ${terms.map(function(t) {
+          return '<div class="home-term-item"><b>' + t[0] + '</b><span>' + t[1] + '</span></div>';
+        }).join('')}
+      </div>
     </div>`;
 }
 
@@ -2352,53 +2335,62 @@ function showPersona(idx) {
   const p = PERSONA_DATA[idx];
   const pane = document.getElementById('persona-pane');
   if (!pane || !p) return;
-  function painsList(items) {
-    return '<ul class="pain-list">' + items.map(function(t, i) {
-      return '<li class="pain-item" data-pb="' + i + '"><span class="pi-icon">↘</span>' + t + '</li>';
-    }).join('') + '</ul>';
-  }
-  function benefitsList(items) {
-    return '<ul class="benefit-list">' + items.map(function(t, i) {
-      return '<li class="benefit-item" data-pb="' + i + '"><span class="bi-icon">↗</span>' + t + '</li>';
-    }).join('') + '</ul>';
+
+  var statHTML = p.stat ?
+    '<div class="persona-stat">' +
+      '<span class="ps-from">' + p.stat.from + '</span>' +
+      '<span class="ps-arrow">→</span>' +
+      '<span class="ps-to">' + p.stat.to + '</span>' +
+      '<span class="ps-label">' + p.stat.label + '</span>' +
+    '</div>' : '';
+
+  function comparisonGrid(pains, benefits) {
+    var rows = pains.map(function(pain, i) {
+      return '<div class="pcompar-cell pcompar-pain" data-pb="' + i + '">' +
+          '<span class="pcompar-num">' + (i + 1) + '</span>' + pain +
+        '</div>' +
+        '<div class="pcompar-cell pcompar-benefit" data-pb="' + i + '">' +
+          '<span class="pcompar-num">' + (i + 1) + '</span>' + benefits[i] +
+        '</div>';
+    }).join('');
+    return '<div class="pcompar">' +
+      '<div class="pcompar-head pcompar-pain-head">↘ Before</div>' +
+      '<div class="pcompar-head pcompar-benefit-head">↗ After</div>' +
+      rows +
+    '</div>';
   }
 
   pane.innerHTML =
     '<div class="persona-name">' + p.title + '</div>' +
     '<div class="persona-tagline">' + p.tagline + '</div>' +
+    statHTML +
     '<div class="pflow-section">' +
       '<div class="pflow-header current">Current State — Today</div>' +
       buildFlowDiagram(p.currentFlow, 'current') +
-      '<div class="pflow-detail current-detail">' +
-        '<div class="pd-label pd-label-pain">Pain Points</div>' +
-        painsList(p.currentPains) +
-      '</div>' +
     '</div>' +
-    '<div class="pflow-transform"><div class="pflow-transform-line"></div><div class="pflow-transform-label">transforms to</div><div class="pflow-transform-line"></div></div>' +
+    '<div class="pflow-transform"><div class="pflow-transform-arrow">→ transforms to →</div></div>' +
     '<div class="pflow-section">' +
       '<div class="pflow-header future">Future State — With This Tool</div>' +
       buildFlowDiagram(p.futureFlow, 'future') +
-      '<div class="pflow-detail future-detail">' +
-        '<div class="pd-label pd-label-benefit">What Changes</div>' +
-        benefitsList(p.futureBenefits) +
-      '</div>' +
     '</div>' +
-    '<div class="loop-callout" style="margin-top:20px">' +
-      '<b>🔵 Where the human stays in the loop</b><br/>' +
+    comparisonGrid(p.currentPains, p.futureBenefits) +
+    '<div class="loop-callout" style="margin-top:16px">' +
+      '<div class="loop-badge">👤 Human in the Loop</div>' +
       p.loop +
     '</div>';
 
-  // Pain → benefit hover linking
   setTimeout(function() {
-    pane.querySelectorAll('.pain-item').forEach(function(el) {
-      var idx = el.getAttribute('data-pb');
-      el.addEventListener('mouseenter', function() {
-        var b = pane.querySelector('.benefit-item[data-pb="' + idx + '"]');
+    pane.querySelectorAll('.pcompar-pain').forEach(function(cell) {
+      var pb = cell.getAttribute('data-pb');
+      cell.addEventListener('mouseenter', function() {
+        var b = pane.querySelector('.pcompar-benefit[data-pb="' + pb + '"]');
         if (b) b.classList.add('pb-linked');
+        cell.classList.add('pb-linked-pain');
       });
-      el.addEventListener('mouseleave', function() {
-        var b = pane.querySelector('.benefit-item[data-pb="' + idx + '"]');
+      cell.addEventListener('mouseleave', function() {
+        var b = pane.querySelector('.pcompar-benefit[data-pb="' + pb + '"]');
         if (b) b.classList.remove('pb-linked');
+        cell.classList.remove('pb-linked-pain');
       });
     });
   }, 0);
